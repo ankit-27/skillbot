@@ -17,10 +17,12 @@ app.post('/', (req, res) => {
   
   memSkill = req.body.conversation.memory.skill.skill;
   memProf = req.body.conversation.memory.proficiency.proficiency;
-  memName = req.body.conversation.memory.name.value;
-  memEmpid = req.body.conversation.memory.empid.value;
 
   if(req.body.conversation.skill == 'update-skill'){
+
+    memName = req.body.conversation.memory.name.value;
+    memEmpid = req.body.conversation.memory.empid.value;
+
     var options = { method: 'POST',
       url: 'https://skillsdb-13fb.restdb.io/rest/skill',
       headers: 
