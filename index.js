@@ -77,7 +77,7 @@ app.post('/', (req, res) => {
       // console.log("db",body);
       dbResponse = JSON.parse(body);
       console.log("len",dbResponse.length);
-      cont = 'Number of employees for ' + memSkill + ' are ' + dbResponse.length + '.';
+      cont = 'Number of employees who know ' + memSkill + ' with proficiency ' + memProf + ' are ' + dbResponse.length + '.';
       
       res.send({
         replies: [{
