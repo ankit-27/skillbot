@@ -52,7 +52,7 @@ app.post('/', (req, res) => {
     
 
   }
-  else{
+  else if(skill & proficiency){
     // createURL(memSkill,memProf);
 
     if(memProf == "all"){
@@ -91,6 +91,31 @@ app.post('/', (req, res) => {
 
     });
 
+  }
+  else if(empoyee_no){
+    
+    url = url + '?q={"Employee_No": "' + memSkill + '"}'; 
+    console.log("url:",url);
+
+    // connecting with restdb.io
+    var options = { method: 'GET',
+      url: url,
+      headers: 
+       { 'cache-control': 'no-cache',
+         'x-apikey': apiKey } };
+
+  }
+  else if(employee_name){
+
+    url = url + '?q={"Employee_Name": "' + memSkill + '"}'; 
+    console.log("url:",url);
+
+    // connecting with restdb.io
+    var options = { method: 'GET',
+      url: url,
+      headers: 
+       { 'cache-control': 'no-cache',
+         'x-apikey': apiKey } };
   }
 
 })
