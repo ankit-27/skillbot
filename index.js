@@ -23,8 +23,8 @@ app.post('/', (req, res) => {
   if(req.body.conversation.skill == 'empnocheck'){
     memEmpid = req.body.nlp.source;
 
-    console.log("empno");
-    console.log(memEmpid);
+    // console.log("empno");
+    // console.log(memEmpid);
 
     url = url + '?q={"Employee_No": ' + memEmpid + '}'; 
     console.log("url:",url);
@@ -40,12 +40,12 @@ app.post('/', (req, res) => {
     request(options, function (error, response, body) {
       if (error) throw new Error(error);
 
-      console.log(body);
-      console.log("Updated");
+      // console.log(body);
+      // console.log("Updated");
 
 
       dbResponse = JSON.parse(body);
-      console.log("dbres",dbResponse[0].Employee_Name);
+      // console.log("dbres",dbResponse[0].Employee_Name);
       var reply = dbResponse[0].Employee_Name;
 
       var reslist = "[";
@@ -61,7 +61,7 @@ app.post('/', (req, res) => {
 
       reslist = reslist + ']';
 
-      console.log("reslist: ",reslist);
+      // console.log("reslist: ",reslist);
       // cont = 'Number of employees who know ' + memSkill + ' with proficiency ' + memProf + ' are ' + dbResponse.length + '.';
 
       res.send({
@@ -107,18 +107,59 @@ app.post('/', (req, res) => {
 
       dbResponse = JSON.parse(body);
       // console.log("dbres",dbResponse);
-      var v1 = [];
+      var empno = [];
+      var empname = [];
+
+      // if(dbResponse.length == 0){
+      //   res.send({
+      //   replies: [
+      //   {
+      //     type: 'text',
+      //     content: "Sorry! we could not find " + memName + " in our database. You could start again by saying Hi"
+      //   }
+      //   ], 
+      //   conversation: {
+      //     memory: { key: 'value' }
+      //   }
+      // })
+      // }
       
 
       for(var i = 1 ; i < dbResponse.length ; i++){
-        v1.push(dbResponse[i].Employee_No);
+        empno.push(dbResponse[i].Employee_No);
+        empname.push(dbResponse[i].Employee_Name);
       }
 
       const distinct = (value,index,self) => {
         return self.indexOf(value) === index;
       }
 
-      // var v2 = v1.filter(distinct);
+      var empno1 = empno.filter(distinct);
+      var empname1 = empname.filter(distinct);
+      var r1,l1;
+
+      if(empno1.length > 1){
+        r1 = "We have found more than one " + memName + " in our database."
+
+        l1 = "[";
+
+        for(var i = 0 ; i < empno1.length ; i++){
+          l1 = l1 + '{"title":"","imageUrl":"",';
+          l1 = l1 + '"subtitle":"' +  empno1[i] + ' - ' + empname1[i] + '",';
+          if(i == (empno1.length-1) )
+            l1 = l1 + '"buttons":[]}';
+          else 
+            l1 = l1 + '"buttons":[]},';
+        }
+
+        l1 = l1 + ']';
+
+      }
+      else{
+        r1 = "We have found " + empname1[0] + " having employee ID " + empno1[0] +", and below skills";
+        l1 = '[{"title":"","imageUrl":"","subtitle":"","buttons":[]}]';
+      }
+
 
       // console.log(v2);
 
@@ -137,21 +178,90 @@ app.post('/', (req, res) => {
 
       // console.log("reslist: ",reslist);
       // cont = 'Number of employees who know ' + memSkill + ' with proficiency ' + memProf + ' are ' + dbResponse.length + '.';
-      console.log(reslist);
-
-
-      var h1 = '[{"title":"","imageUrl":"","subtitle":"Hello","buttons":[]}]';
+      // console.log(reslist);
 
       res.send({
         replies: [
         {
+          type: 'text',
+          content: r1
+        },
+        {
           type: 'list',
-          // content: h1,
+          content: {
+            "elements" : JSON.parse(l1) 
+          }
+        },
+        {
+          type: 'list',
           content: {
             "elements": JSON.parse(reslist)
           }
         }
         ], 
+        conversation: {
+          memory: { key: 'value' }
+        }
+      })
+
+    });
+  }
+
+  if(req.body.conversation.skill == 'employee-skill'){
+    memSkill = req.body.nlp.source;
+
+    url = url + '?q={"Skill":{"$regex":"' + memSkill + '"}}';
+    console.log(url);
+
+    // connecting with restdb.io
+    var options = { method: 'GET',
+      url: url,
+      headers: 
+       { 'cache-control': 'no-cache',
+         'x-apikey': apiKey } };
+
+
+    request(options, function (error, response, body) {
+      if (error) throw new Error(error);
+
+      // console.log(body);
+      // console.log("Updated");
+
+
+      dbResponse = JSON.parse(body);
+      // console.log("dbres",dbResponse);
+      // var reply = dbResponse[0].Employee_Name;
+
+      var reslist = "[";
+
+      for(var i = 0 ; i < dbResponse.length ; i++){
+        reslist = reslist + '{"title":"","imageUrl":"",';
+        reslist = reslist + '"subtitle":"' + dbResponse[i].Employee_No + ' - ' +  dbResponse[i].Employee_Name + ' - ' + dbResponse[i].Proefficiency + '",';
+        if(i == (dbResponse.length-1) )
+          reslist = reslist + '"buttons":[]}';
+        else 
+          reslist = reslist + '"buttons":[]},';
+      }
+
+      reslist = reslist + ']';
+
+      // console.log("reslist: ",reslist);
+      // cont = 'Number of employees who know ' + memSkill + ' with proficiency ' + memProf + ' are ' + dbResponse.length + '.';
+
+      res.send({
+        replies: [
+        {
+          type: 'text',
+          content: "Below mentioned employees have skills of " + memSkill,
+        },
+
+        {
+          type: 'list',
+          // content: "Name of the employee for " + memEmpid + " is " + reply ,
+          content: {
+            "elements": JSON.parse(reslist)
+          }
+        }], 
         conversation: {
           memory: { key: 'value' }
         }
