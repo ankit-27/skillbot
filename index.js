@@ -46,7 +46,7 @@ app.post('/', (req, res) => {
 
       dbResponse = JSON.parse(body);
       console.log("dbres",dbResponse[0].Employee_Name);
-      var reply = dbResponse[0].Employee_Name
+      // var reply = dbResponse[0].Employee_Name
 
       var reslist = "[";
 
@@ -74,13 +74,13 @@ app.post('/', (req, res) => {
              {
                 "title": "",
                 "imageUrl": "",
-                "subtitle": "Java",
+                "subtitle": "Java - Beginner",
                 "buttons": []
              },
              {
                 "title": "",
                 "imageUrl": "",
-                "subtitle": "Python",
+                "subtitle": "Python - Expert",
                 "buttons": []
              },
             ]
@@ -90,6 +90,81 @@ app.post('/', (req, res) => {
           memory: { key: 'value' }
         }
       })
+
+    });
+  }
+
+  if(req.body.conversation.skill == 'employee-name'){
+    memName = req.body.nlp.source;
+
+    url = url + '?q={"Employee_Name":{"$regex":"' + memName + '"}}';
+
+    var options = { method: 'GET',
+      url: url,
+      headers: 
+       { 'cache-control': 'no-cache',
+         'x-apikey': apiKey } };
+
+
+    request(options, function (error, response, body) {
+      if (error) throw new Error(error);
+
+      // console.log(body);
+      // console.log("Updated");
+
+
+      dbResponse = JSON.parse(body);
+      // console.log("dbres",dbResponse);
+      var v1 = [];
+      
+
+      for(var i = 1 ; i < dbResponse.length ; i++){
+        v1.push(dbResponse[i].Employee_No);
+      }
+
+      const distinct = (value,index,self) => {
+        return self.indexOf(value) === index;
+      }
+
+      // var v2 = v1.filter(distinct);
+
+      // console.log(v2);
+
+      var reslist = "[";
+
+      for(var i = 0 ; i < dbResponse.length ; i++){
+        reslist = reslist + '{"title":"","imageUrl":"",';
+        reslist = reslist + '"subtitle":"' +  dbResponse[i].Employee_Name + ' - ' + dbResponse[i].Skill + '",';
+        if(i == (dbResponse.length-1) )
+          reslist = reslist + '"buttons":[]}';
+        else 
+          reslist = reslist + '"buttons":[]},';
+      }
+
+      reslist = reslist + ']';
+
+      // console.log("reslist: ",reslist);
+      // cont = 'Number of employees who know ' + memSkill + ' with proficiency ' + memProf + ' are ' + dbResponse.length + '.';
+      console.log(reslist);
+
+
+      var h1 = '[{"title":"","imageUrl":"","subtitle":"Hello","buttons":[]}]';
+
+      res.send({
+        replies: [
+        {
+          type: 'list',
+          // content: h1,
+          content: {
+            "elements": JSON.parse(reslist)
+          }
+        }
+        ], 
+        conversation: {
+          memory: { key: 'value' }
+        }
+      })
+
     });
   }
 
