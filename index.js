@@ -46,12 +46,17 @@ app.post('/', (req, res) => {
 
       dbResponse = JSON.parse(body);
       console.log("dbres",dbResponse[0].Employee_Name);
-      // var reply = dbResponse[0].Employee_Name
+      var reply = dbResponse[0].Employee_Name;
 
       var reslist = "[";
 
       for(var i = 0 ; i < dbResponse.length ; i++){
-        reslist = reslist + '{"subtitle":"' +  dbResponse[i].Skill + '"},';
+        reslist = reslist + '{"title":"","imageUrl":"",';
+        reslist = reslist + '"subtitle":"' +  dbResponse[i].Skill + '   -   ' + dbResponse[i].Proefficiency + '",';
+        if(i == (dbResponse.length-1) )
+          reslist = reslist + '"buttons":[]}';
+        else 
+          reslist = reslist + '"buttons":[]},';
       }
 
       reslist = reslist + ']';
@@ -63,27 +68,14 @@ app.post('/', (req, res) => {
         replies: [
         {
           type: 'text',
-          content: "Name of the employee for " + memEmpid + " is " + reply + " and skills are :",
+          content: reply + " with employee ID " + memEmpid + " has below skills :",
         },
 
         {
           type: 'list',
           // content: "Name of the employee for " + memEmpid + " is " + reply ,
           content: {
-            "elements": [
-             {
-                "title": "",
-                "imageUrl": "",
-                "subtitle": "Java - Beginner",
-                "buttons": []
-             },
-             {
-                "title": "",
-                "imageUrl": "",
-                "subtitle": "Python - Expert",
-                "buttons": []
-             },
-            ]
+            "elements": JSON.parse(reslist)
           }
         }], 
         conversation: {
