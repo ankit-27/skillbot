@@ -317,6 +317,55 @@ app.post('/', (req, res) => {
 
     });
   }
+  if(){
+    memSkill = req.body.nlp.source;
+    memEmpid = req.body.conversation.memory.empid;
+
+
+    url = url + '?q={"Employee_No": ' + memEmpid + ',"Skill":{"$regex":"'+ memSkill +'"}}'; 
+    console.log("url:",url);
+
+    // connecting with restdb.io
+    var options = { method: 'GET',
+      url: url,
+      headers: 
+       { 'cache-control': 'no-cache',
+         'x-apikey': apiKey } };
+
+
+    request(options, function (error, response, body) {
+      if (error) throw new Error(error);
+
+      // console.log(body);
+      // console.log("Updated");
+
+
+      dbResponse = JSON.parse(body);
+
+      var r1;
+
+      if(dbResponse.length > 0){
+        r1 = "The given skill already exist in our database for " + memEmpid + " with " + dbResponse[0].Proefficiency + ". With which proficiency do you want it to update?";
+      }
+      else{
+        r1 = "Sorry! cannot find the given skill in our database for "+ memEmpid;
+      }
+
+
+      res.send({
+        replies: [
+        {
+          type: 'text',
+          content: r1
+        }
+        ], 
+        conversation: {
+          memory: { empid: memEmpid }
+        }
+      })
+
+    });
+  }
 
   // if(req.body.conversation.skill == 'update-skill'){
 
