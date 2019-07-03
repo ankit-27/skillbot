@@ -46,7 +46,11 @@ app.post('/', (req, res) => {
 
       dbResponse = JSON.parse(body);
       // console.log("dbres",dbResponse[0].Employee_Name);
+
+      if(dbResponse.length > 0){
+
       var reply = dbResponse[0].Employee_Name;
+
 
       var reslist = "[";
 
@@ -82,13 +86,30 @@ app.post('/', (req, res) => {
           memory: { key: 'value' }
         }
       })
-
+    }
+    else{
+      res.send({
+        replies: [
+        {
+          type: 'text',
+          content: "Provided employee ID is not present in our DB. Please use Add function.",
+        }
+        ], 
+        conversation: {
+          memory: { key: 'value' }
+        }
+      })
+    }
     });
+
+
   }
 
   if(req.body.conversation.skill == 'employee-name'){
     memName = req.body.nlp.source;
 
+
+    console.log(memName);
     url = url + '?q={"Employee_Name":{"$regex":"' + memName + '"}}';
 
     var options = { method: 'GET',
@@ -123,7 +144,7 @@ app.post('/', (req, res) => {
       //   }
       // })
       // }
-      
+      if(dbResponse.length > 0){
 
       for(var i = 1 ; i < dbResponse.length ; i++){
         empno.push(dbResponse[i].Employee_No);
@@ -203,7 +224,20 @@ app.post('/', (req, res) => {
           memory: { key: 'value' }
         }
       })
-
+    }
+    else{
+      res.send({
+        replies: [
+        {
+          type: 'text',
+          content: "Provided employee ID is not present in our DB. Please use Add function .",
+        }
+        ], 
+        conversation: {
+          memory: { key: 'value' }
+        }
+      })
+    }
     });
   }
 
@@ -231,6 +265,8 @@ app.post('/', (req, res) => {
       dbResponse = JSON.parse(body);
       // console.log("dbres",dbResponse);
       // var reply = dbResponse[0].Employee_Name;
+
+      if(dbResponse.length > 0){
 
       var reslist = "[";
 
@@ -266,11 +302,24 @@ app.post('/', (req, res) => {
           memory: { key: 'value' }
         }
       })
-
+    }
+    else{
+      res.send({
+        replies: [
+        {
+          type: 'text',
+          content: "Provided Skill is not present in our DB. Please use Skill Update function.",
+        }
+        ], 
+        conversation: {
+          memory: { key: 'value' }
+        }
+      })
+    }
     });
   }
 
-  if(req.body.conversation.skill == 'getupdate' && req.body.conversation.memory.status =='update' ){
+  if(req.body.conversation.skill == 'updchkempdb' && req.body.conversation.memory.status =='update' ){
     memEmpid = req.body.nlp.source;
 
     url = url + '?q={"Employee_No": ' + memEmpid + '}'; 
@@ -299,7 +348,7 @@ app.post('/', (req, res) => {
         r1 = "Please provide skill to update in database";
       }
       else{
-        r1 = "Provided employee ID is not present in our DB. ADD functionality will be given soon."
+        r1 = "Provided employee ID is not present in our DB. Please use Add functionality."
       }
 
 
@@ -311,59 +360,48 @@ app.post('/', (req, res) => {
         }
         ], 
         conversation: {
-          memory: { empid: memEmpid }
+          memory: { 
+            empid: memEmpid,
+            status: "update",
+            empname: dbResponse[0].Employee_Name
+            }
         }
       })
 
     });
   }
-  if(){
-    memSkill = req.body.nlp.source;
+
+  if(req.body.conversation.memory.status =='post'){
+    memSkill = req.body.conversation.memory.idenskill.raw;
     memEmpid = req.body.conversation.memory.empid;
+    memProf = req.body.conversation.memory.updempeff.value;
+    memName = req.body.conversation.memory.empname;
 
-
-    url = url + '?q={"Employee_No": ' + memEmpid + ',"Skill":{"$regex":"'+ memSkill +'"}}'; 
-    console.log("url:",url);
-
-    // connecting with restdb.io
-    var options = { method: 'GET',
-      url: url,
+    var options = { method: 'POST',
+      url: 'https://skillsdb-13fb.restdb.io/rest/sample-data',
       headers: 
        { 'cache-control': 'no-cache',
-         'x-apikey': apiKey } };
+         'x-apikey': '5541eadc9a1186f89fecb4cb4ec64b436b0dc',
+         'content-type': 'application/json' },
+      body: { Employee_No: memEmpid, Employee_Name: memName, Skill: memSkill, Proefficiency: memProf, Location: null },
+      json: true };
 
 
     request(options, function (error, response, body) {
       if (error) throw new Error(error);
 
-      // console.log(body);
-      // console.log("Updated");
-
-
-      dbResponse = JSON.parse(body);
-
-      var r1;
-
-      if(dbResponse.length > 0){
-        r1 = "The given skill already exist in our database for " + memEmpid + " with " + dbResponse[0].Proefficiency + ". With which proficiency do you want it to update?";
-      }
-      else{
-        r1 = "Sorry! cannot find the given skill in our database for "+ memEmpid;
-      }
-
+      console.log(body);
+      console.log("Updated");
 
       res.send({
-        replies: [
-        {
+        replies: [{
           type: 'text',
-          content: r1
-        }
-        ], 
+          content: 'Skill has been updated for employee ID ' + memEmpid,
+        }], 
         conversation: {
-          memory: { empid: memEmpid }
+          memory: { key: 'value' }
         }
       })
-
     });
   }
 
